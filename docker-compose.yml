@@ -1,0 +1,81 @@
+
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: flowbit-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  api:
+    build: ./api
+    container_name: flowbit-api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/flowbit?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/ticket-start
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    env_file:
+      - .env
+
+  shell:
+    build:
+      context: ./shell
+      args:
+        VITE_API_URL: http://localhost:3000
+        VITE_SUPPORT_TICKETS_URL: http://localhost:3002
+    container_name: flowbit-shell
+    ports:
+      - "3001:80"
+    depends_on:
+      - api
+
+  support-tickets:
+    build:
+      context: ./support-tickets
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: flowbit-support-tickets
+    ports:
+      - "3002:80"
+    depends_on:
+      - api
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: flowbit-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: flowbit-ngrok
+    ports:
+      - "4040:4040"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTH_TOKEN}
+    command: ["ngrok", "http", "api:3000"]
+    depends_on:
+      - api
+
+volumes:
+  mongodb_data:
+  n8n_data:
