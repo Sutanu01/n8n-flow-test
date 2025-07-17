@@ -1,6 +1,6 @@
-# Flowbit: Multi-Tenant Micro-Frontend Support Ticket Platform
+# Multi-Tenant Micro-Frontend Support Ticket Platform
 
-Flowbit is a full-stack, containerized micro-frontend platform built for the Smart India Hackathon. It enables multi-tenant ticketing management integrated with `n8n` workflows, JWT-based authentication, RBAC, and MongoDB tenant data isolation.
+A full-stack, containerized micro-frontend platform enabling multi-tenant ticketing management integrated with `n8n` workflows, JWT-based authentication, RBAC, and MongoDB tenant data isolation.
 
 ---
 
@@ -23,8 +23,7 @@ flowbit/
 ├── shell/                # Main React shell
 ├── support-tickets/      # Micro-frontend for ticket system
 ├── docker-compose.yml    # Multi-container configuration
-├── .env                  # Environment variables
-└── n8n/                  # External workflow engine
+└── .env                  # Environment variables
 ```
 
 ---
@@ -55,7 +54,6 @@ Create a `.env` file in the root and add:
 
 ```env
 JWT_SECRET=your-super-secret-jwt-key
-NGROK_AUTH_TOKEN=your-ngrok-token
 ```
 
 > MongoDB credentials and n8n basic auth are already configured inside `docker-compose.yml`.
@@ -76,15 +74,15 @@ docker compose up --build
 ## 🔁 Webhook Flow (n8n)
 
 1. Webhook triggers when a ticket is created.
-2. Timer waits a few seconds.
+2. Timer waits a 10 seconds.
 3. HTTP Request updates the ticket status (e.g., `in progress`).
-4. Callback hits backend at `/api/tickets/update-status`.
+4. Callback hits backend at `/webhook/ticket-done`.
 
 ### Example JSON (HTTP Request Node in n8n):
 
 ```json
 {
-  "ticketId": "={{$json.ticketId}}",
+  "ticketId": "={{$json.body.ticketId}}",
   "newStatus": "in progress"
 }
 ```
