@@ -38,6 +38,10 @@ flowbit/
 - **Containerization:** Docker, Docker Compose
 
 ---
+## 💡 Architecture Diagram
+
+![Architecture Diagram](./assets/design.png)
+
 
 ## 🛠️ Setup Instructions
 
